@@ -1,0 +1,41 @@
+{
+"REDDIT":{
+	"user_agent":"",
+    "client_id":"",
+    "client_secret":"",
+    "username":"",
+    "password":""
+},
+"SUBREDDIT":{
+	"subreddit" : "",
+	"firstpost" : "",
+	"requestthread" : ""
+},
+"SQLREADWRITE":{
+	"server" : "",
+	"database" : "",
+	"username" : "", 
+	"password" : "" 
+},
+"SQLREAD":{
+	"server" : "",
+	"database" : "",
+	"username" : "", 
+	"password" : "" 
+},
+"DISCORD":{
+	"PREFIX": "",
+	"TOKEN" : "",
+	"ELEVATEDCHANNELS" : [],
+	"requestchannel" : 
+},
+"OTHER":{
+	"filepath": "",
+	"backlog": "False",	
+	"vidlink": "True",
+	"rarefetchwordchance" : 0,
+	"fetchwordcommon" :["gotten", "fetched", "acquired", "obtained"],
+	"fetchwordrare" : ["randomly generated", "bootlegged a copy of"],
+	"fetchvidaltname": ["video"]
+}
+}
