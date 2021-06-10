@@ -4,10 +4,12 @@ import pyodbc
 import os
 import time
 import json
+import urllib
 
 configuration=json.load(open('config.json'))
 
 filepath = configuration["OTHER"]["filepath"] #location of saved files
+apiLimitWaitTime = 5 #seconds to wait for the reddit api to catch up
 
 #Discord Bot Config
 TOKEN = configuration["DISCORD"]["TOKEN"]
@@ -22,6 +24,10 @@ password = configuration["SQLREAD"]["password"]
 cnxn = pyodbc.connect('DRIVER={SQL SERVER};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
 mycursor = cnxn.cursor()
 
+def aquireJson(url):
+    response = urllib.request.urlopen(url)
+    data = json.loads(response.read())
+    return data
 
 #fetches the full filename, given a post ID  
 def fileNameFetch(postID):
@@ -61,7 +67,23 @@ async def vidfetch(ctx, *postID):
             message = 'Title: ' + sqloutput.PostTitle + '\n' +'By u/' + sqloutput.PosterName
             path = fileNameFetch(post)
             if ((os.stat(path).st_size)> 8388600):
-                await ctx.send(message + '\n File larger than 8MB')
+                link="File larger than 8MB, Failed to get link"
+                flag=True
+                i=0
+                while(flag):
+                    try:
+                        data = aquireJson("https://www.reddit.com/"+post+".json")
+                        link=data[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["fallback_url"].replace('?source=fallback','')
+                        flag=False
+                    except:
+                        if(i<5):
+                            i=i+1
+                            time.sleep(apiLimitWaitTime)
+                        else:
+                            flag=False
+                            
+
+                await ctx.send(message + '\n'+link)
             else:
                  await ctx.send(message, file=discord.File(path))
              
