@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import discord
 from discord.ext import commands
 import pyodbc
@@ -66,23 +67,32 @@ async def vidfetch(ctx, *postID):
             sqloutput = mycursor.fetchone()
             message = 'Title: ' + sqloutput.PostTitle + '\n' +'By u/' + sqloutput.PosterName
             path = fileNameFetch(post)
-            if ((os.stat(path).st_size)> 8388600):
-                link="File larger than 8MB, Failed to get link"
-                flag=True
-                i=0
-                while(flag):
-                    try:
-                        data = aquireJson("https://www.reddit.com/"+post+".json")
-                        link=data[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["fallback_url"].replace('?source=fallback','')
-                        flag=False
-                    except:
-                        if(i<5):
-                            i=i+1
-                            time.sleep(apiLimitWaitTime)
-                        else:
-                            flag=False
-                            
 
+            #checks if its larger than 8MB
+            if ((os.stat(path).st_size)> 8388600):
+
+                #check for filetype
+                if(sqloutput.FileType=='mp4'):
+
+                    #check if resolution is in the database. If not, fetch from link from reddit, if yes, blindly hope that whats in the database is legit.
+                    if(sqloutput.VerticalRes==None):
+                        try:
+                            data = aquireJson("https://www.reddit.com/"+post+".json")
+                            link=data[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["fallback_url"].replace('?source=fallback','') + ' \n sorry it aint going to have audio'
+                        except:
+                            link="File larger than 8MB, Failed to get link"
+                    elif(sqloutput.VerticalRes>=720):
+                        link=sqloutput.DirectURL+'/DASH_720.mp4 \n sorry it aint going to have audio'
+                    elif(sqloutput.VerticalRes>=480):
+                        link=sqloutput.DirectURL+'/DASH_480.mp4 \n sorry it aint going to have audio'
+                    elif(sqloutput.VerticalRes>=360):
+                        link=sqloutput.DirectURL+'/DASH_360.mp4 \n sorry it aint going to have audio'
+                    elif(sqloutput.VerticalRes>=240):
+                        link=sqloutput.DirectURL+'/DASH_240.mp4 \n sorry it aint going to have audio'
+                    else:
+                        link="File larger than 8MB, Failed to get link"
+                else:
+                    link=sqloutput.DirectURL
                 await ctx.send(message + '\n'+link)
             else:
                  await ctx.send(message, file=discord.File(path))
