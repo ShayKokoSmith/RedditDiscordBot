@@ -5,8 +5,14 @@ import json
 import pyodbc
 import discord
 from discord.ext import commands
+import sys
 
-configuration=json.load(open('config.json'))
+print(str(sys.argv))
+
+if len(sys.argv) > 1:
+    configuration=json.load(open(sys.argv[1]))
+else:
+    configuration=json.load(open('config.json'))
 
 #bot credentials
 reddit = asyncpraw.Reddit(
@@ -91,6 +97,7 @@ async def commentStream():
     subreddit = await reddit.subreddit(subredditName)
     while(True):
         try:
+            print("Starting Comment stream")
             async for comment in subreddit.stream.comments():
                 print("-------")
                 commentID=comment.id
@@ -136,9 +143,10 @@ async def commentStream():
                       
                 else: 
                     print("Comment in database")
-        except:
+        except Exception as e:
             print("oopies i did a bit of a crash")
-            time.sleep(apiLimitWaitTime)
+            print(e)
+
             
     await print("stopped for some reason")
 

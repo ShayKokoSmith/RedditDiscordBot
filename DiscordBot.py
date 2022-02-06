@@ -6,8 +6,15 @@ import os
 import time
 import json
 import urllib
+import sys
 
-configuration=json.load(open('config.json'))
+print(str(sys.argv))
+
+if len(sys.argv) > 1:
+    configuration=json.load(open(sys.argv[1]))
+else:
+    configuration=json.load(open('config.json'))
+
 
 filepath = configuration["OTHER"]["filepath"] #location of saved files
 apiLimitWaitTime = 5 #seconds to wait for the reddit api to catch up
@@ -16,6 +23,7 @@ apiLimitWaitTime = 5 #seconds to wait for the reddit api to catch up
 TOKEN = configuration["DISCORD"]["TOKEN"]
 bot = commands.Bot(command_prefix=configuration["DISCORD"]["PREFIX"])
 elevatedChannels = configuration["DISCORD"]["ELEVATEDCHANNELS"]
+isNSFW =('true'==configuration["OTHER"]["isNSFW"].lower())
 
 #SQL server login
 server = configuration["SQLREAD"]["server"]
@@ -31,11 +39,14 @@ def aquireJson(url):
     return data
 
 #fetches the full filename, given a post ID  
-def fileNameFetch(postID):
+def fileNameFetch(postID, nsfwFlag = False):
     cmd = "SELECT FileType FROM post WHERE PostID= ?"
     mycursor.execute(cmd, (postID,))
     filetype = mycursor.fetchone()
-    path = filepath + postID + '.' + filetype.FileType
+    if nsfwFlag:
+        path = filepath +'SPOILER_'+ postID + '.' + filetype.FileType
+    else:
+        path = filepath + postID + '.' + filetype.FileType
     print(path)
     return path
 
@@ -93,9 +104,15 @@ async def vidfetch(ctx, *postID):
                         link="File larger than 8MB, Failed to get link"
                 else:
                     link=sqloutput.DirectURL
-                await ctx.send(message + '\n'+link)
+                if isNSFW:
+                    await ctx.send(message + '\n [NSFW] \n||'+link+'||')
+                else:
+                    await ctx.send(message + '\n'+link)
             else:
-                 await ctx.send(message, file=discord.File(path))
+                if isNSFW:
+                    await ctx.send(message+"\n [NSFW]", file=discord.File(path, spoiler=True))
+                else:
+                    await ctx.send(message, file=discord.File(path))
              
 #looks for the string and returns the top posts containing a string, up to 1500 characters
 @bot.command(name='findthis', help = 'Looks for a string and returns posts containing that string')    

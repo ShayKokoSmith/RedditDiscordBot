@@ -7,8 +7,15 @@ from redvid import Downloader
 import os
 from random import random
 import cv2
+import sys
 
-configuration=json.load(open('config.json'))
+print(str(sys.argv))
+
+if len(sys.argv) > 1:
+    configuration=json.load(open(sys.argv[1]))
+else:
+    configuration=json.load(open('config.json'))
+
 
 #bot credentials
 reddit = praw.Reddit(
@@ -210,10 +217,10 @@ if backlog: #BACKLOG SECTION
             #checks if is in the database
             mycursor.execute("SELECT PostID FROM post WHERE PostID='"+postID+"'")
             if (mycursor.rowcount == 0):
-                databaseAdd()
+                databaseAdd(postID,postTitle,posterName,postTime,directURL,postType)
             else:
                 print("Already in database")
-            fileDownload()
+            fileDownload(postID,postType,directURL)
             print("---------------------------------")
             i=i+1
             last=postID

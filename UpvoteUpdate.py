@@ -3,9 +3,15 @@ import time
 import urllib
 import json
 import pyodbc 
+import sys
 
+print(str(sys.argv))
 
-configuration=json.load(open('config.json'))
+if len(sys.argv) > 1:
+    configuration=json.load(open(sys.argv[1]))
+else:
+    configuration=json.load(open('config.json'))
+
 
 #bot credentials
 reddit = praw.Reddit(
