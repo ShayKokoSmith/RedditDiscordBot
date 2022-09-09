@@ -241,15 +241,17 @@ async def sql(ctx, *args):
     for x in args:
         msg = msg + x + " "
     if (channelWhitelist(ctx)):
-        mycursor.execute(msg)
-        sqloutput = mycursor.fetchall()
-        response=""
-        for x in sqloutput:
-            if((len(response)+len(str(x)))>1999):
-                await ctx.send(response)
-                response=""
-            response=response + "\n \n"+ str(x)
-            
+        try:
+            mycursor.execute(msg)
+            sqloutput = mycursor.fetchall()
+            response=""
+            for x in sqloutput:
+                if((len(response)+len(str(x)))>1999):
+                    await ctx.send(response)
+                    response=""
+                response=response + "\n \n"+ str(x)
+        except Exception as e:
+            response = str(e)
         await ctx.send(response)
 
     
